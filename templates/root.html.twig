@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Welcome!{% endblock %}</title>
+    </head>
+    <body>
+        <form action="/" method="get" class="form-example">
+            <div class="form">
+                <label for="url">Enter url you want to shorten:</label>
+                <input type="text" name="url" id="url" required />
+            </div>
+            <div class="form">
+                <input type="submit" value="Get short url" />
+            </div>
+        </form>
+    </body>
+</html>
