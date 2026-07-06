@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Short Links{% endblock %}</title>
+        <link rel="stylesheet" href="{{ asset("css/list.css") }}">
+    </head>
+    <body>
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Short Link</th>
+                    <th scope="col">Long Link</th>
+                    <th scope="col">Link Creation Time</th>
+                    <th scope="col">Link Last Usage Time</th>
+                    <th scope="col">Link Use Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for link in links %}
+                    <tr>
+                        <td scope="row">{{ link.shortUrl }}</td>
+                        <td scope="row">{{ link.longUrl }}</td>
+                        <td scope="row">{{ link.creationTimeToString }}</td>
+                        <td scope="row">{{ link.lastUseTimeToString }}</td>
+                        <td scope="row">{{ link.useCount }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </body>
+</html>

@@ -21,7 +21,7 @@ class Link
     private ?\DateTime $creationTime = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTime $lastUsedTime = null;
+    private ?\DateTime $lastUseTime = null;
 
     #[ORM\Column]
     private int $useCount = 0;
@@ -64,14 +64,14 @@ class Link
         return $this;
     }
 
-    public function getLastUsedTime(): ?\DateTime
+    public function getLastUseTime(): ?\DateTime
     {
-        return $this->lastUsedTime;
+        return $this->lastUseTime;
     }
 
-    public function setLastUsedTime(?\DateTime $lastUsedTime): static
+    public function setLastUsedTime(?\DateTime $lastUseTime): static
     {
-        $this->lastUsedTime = $lastUsedTime;
+        $this->lastUseTime = $lastUseTime;
 
         return $this;
     }
@@ -88,22 +88,27 @@ class Link
         return $this;
     }
 
-    public static function create(string $longUrl): Link
+    public static function create(string $longUrl, EMInterface $em): ?Link
     {
         $link = new Link();
+
+        if (filter_var($longUrl, FILTER_VALIDATE_URL) === false) {
+            return null;
+        }
+
         $link->setLongUrl($longUrl);
-        $link->setShortUrl(Link::generateShortUrl());
+        $link->setShortUrl(Link::generateShortUrl($em));
         $link->setCreationTime(date_create());
         return $link;
     }
 
-    public static function tryCreate(?string $longUrl): ?Link
+    public static function tryCreate(?string $longUrl, EMInterface $em): ?Link
     {
         if (is_null($longUrl)) {
             return null;
         }
 
-        return Link::create($longUrl);
+        return Link::create($longUrl, $em);
     }
 
     public static function generateRandomString(int $len): ?string
@@ -123,16 +128,17 @@ class Link
         return $result;
     }
 
-    public static function generateShortUrl(): string
+    public static function generateShortUrl($em): string
     {
-        /* define(SHORT_URL_LEN) */
-        /* global SHORT_URL_LEN; */
-        return Link::generateRandomString(self::SHORT_URL_LEN);
+        do {
+            $shortUrl = Link::generateRandomString(self::SHORT_URL_LEN);
+        } while (!Link::shortUrlIsUnique($shortUrl, $em));
+        return $shortUrl;
     }
 
     public static function createLink(string $longUrl, EMInterface $em): Link
     {
-        $link = Link::create($longUrl);
+        $link = Link::create($longUrl, $em);
         $em->flush();
         return $link;
     }
@@ -203,7 +209,7 @@ class Link
         return $link;
     }
 
-    public static function fromJson(string $input): ?Link
+    public static function fromJson(string $input, EMInterface $em): ?Link
     {
         if (!json_validate($input)) {
             return null;
@@ -211,6 +217,55 @@ class Link
 
         $obj = json_decode($input, true);
         $longUrl = array_key_exists('longUrl', $obj) ? $obj['longUrl'] : null;
-        return Link::tryCreate($longUrl);
+        return Link::tryCreate($longUrl, $em);
+    }
+
+    public static function shortUrlIsUnique(string $shortUrl, EMInterface $em): bool
+    {
+        $links = $em->getRepository(Link::class)->findBy(['shortUrl' => $shortUrl]);
+
+        return count($links) === 0;
+    }
+
+    public function updateFromJson(string $content, EMInterface $em): bool
+    {
+        if (!json_validate($content)) {
+            return false;
+        }
+
+        $obj = json_decode($content, true);
+        $newLongUrl = array_key_exists('longUrl', $obj) ? $obj['longUrl'] : null;
+        $newShortUrl = array_key_exists('shortUrl', $obj) ? $obj['shortUrl'] : null;
+
+        if (is_null($newShortUrl) && is_null($newLongUrl)) {
+            return true;
+        }
+
+        if (!is_null($newLongUrl)) {
+            $this->setLongUrl($newLongUrl);
+        }
+
+        if (!is_null($newShortUrl)) {
+            if (!Link::shortUrlIsUnique($newShortUrl, $em)) {
+                return false;
+            }
+
+            $this->setShortUrl($newShortUrl);
+        }
+
+        $em->persist($this);
+        $em->flush();
+
+        return true;
+    }
+
+    public function creationTimeToString(): string
+    {
+        return $this->creationTime->format('Y-m-d H:i:s');
+    }
+
+    public function lastUseTimeToString(): string
+    {
+        return $this->lastUseTime->format('Y-m-d H:i:s');
     }
 }

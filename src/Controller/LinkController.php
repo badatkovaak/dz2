@@ -45,19 +45,49 @@ class LinkController extends AbstractController
         $content = $request->getContent();
 
         if (!json_validate($content)) {
-            return new Response('Error! Not a valid JSON.', 400);
+            return new Response('Error! Not a valid JSON.' . PHP_EOL, 400);
         }
 
-        $obj = json_decode($content, true);
-        $link = Link::fromJson($content);
+        $link = Link::fromJson($content, $em);
 
         if (is_null($link)) {
-            return new Response('Error! Error during decoding.', 400);
+            return new Response('Error! Error during decoding.' . PHP_EOL, 400);
         }
 
         Link::saveLink($link, $em);
 
-        /* return new Response(var_export($obj, true) . PHP_EOL . var_export($link, true)); */
+        return new Response('Success!' . PHP_EOL);
+    }
+
+    #[Route('/link/{id}', name: 'update_link', methods: ['PATCH'], requirements: ['id' => '\d+'])]
+    public function updateLinkRoute(int $id, Request $request, EMInterface $em): Response
+    {
+        $link = Link::getLinkById($id, $em);
+
+        if (is_null($link)) {
+            return new Response('Error! Link with this id does not exist.' . PHP_EOL, 404);
+        }
+
+        $content = $request->getContent();
+
+        if (!json_validate($content)) {
+            return new Response('Error! Not a valid JSON.' . PHP_EOL, 400);
+        }
+
+        if (!$link->updateFromJson($content, $em)) {
+            return new Response('Error! Error while updating.' . PHP_EOL, 400);
+        }
+
+        return new Response('Success!' . PHP_EOL);
+    }
+
+    #[Route('/link/{id}', name: 'delete_link', methods: ['DELETE'], requirements: ['id' => '\d+'])]
+    public function deleteLinkRoute(int $id, EMInterface $em): Response
+    {
+        if (!Link::deleteLink($id, $em)) {
+            return new Response('Error! Error while deleting the link.' . PHP_EOL, 400);
+        }
+
         return new Response('Success!' . PHP_EOL);
     }
 }
