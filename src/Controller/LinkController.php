@@ -2,9 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Link;
 use App\Repository\LinkRepository;
-/* use Doctrine\ORM\EntityManagerInterface as EMInterface; */
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,7 +21,7 @@ class LinkController extends AbstractController
     {
         $link = $rep->getLinkById($id);
         if (is_null($link)) {
-            return new Response('', 404);
+            return $this->json(['status' => 'Error! Id not found.'], 404);
         }
 
         return $this->json($link);
@@ -34,14 +32,14 @@ class LinkController extends AbstractController
     {
         $link = $rep->getLinkByUrl($url);
         if (is_null($link)) {
-            return new Response('', 404);
+            return $this->json(['status' => 'Error! No link with that url.'], 404);
         }
 
         return $this->json($link);
     }
 
     #[Route('/link', name: 'create_link', methods: ['POST'])]
-    public function createLinkRoute(Request $request, LinkRepository $rep, EMInterface $em): Response
+    public function createLinkRoute(Request $request, LinkRepository $rep): Response
     {
         $content = $request->getContent();
 
@@ -49,13 +47,13 @@ class LinkController extends AbstractController
             return $this->json(['status' => 'Error! Not a valid JSON.'], 400);
         }
 
-        $link = Link::fromJson($content, $em);
+        $link = $rep->fromJson($content);
 
         if (is_null($link)) {
             return $this->json(['status' => 'Error! Error during decoding.'], 400);
         }
 
-        Link::saveLink($link, $em);
+        $rep->save($link);
 
         return $this->json(['status' => 'Success!']);
     }
@@ -75,7 +73,7 @@ class LinkController extends AbstractController
             return $this->json(['status' => 'Error! Not a valid JSON.'], 400);
         }
 
-        if (!$link->updateFromJson($content, $em)) {
+        if (!$rep->updateFromJson($content)) {
             return $this->json(['status' => 'Error! Error while updating.'], 400);
         }
 
