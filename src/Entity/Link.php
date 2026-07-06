@@ -28,6 +28,11 @@ class Link
 
     public const SHORT_URL_LEN = 5;
 
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
     public function getShortUrl(): string
     {
         return $this->shortUrl;
@@ -88,6 +93,16 @@ class Link
         return $this;
     }
 
+    public function incrementUseCount(): void
+    {
+        $this->useCount++;
+    }
+
+    public function updateLastUseTime(): void
+    {
+        $this->lastUseTime = date_create();
+    }
+
     public static function create(string $longUrl, EMInterface $em): ?Link
     {
         $link = new Link();
@@ -128,7 +143,7 @@ class Link
         return $result;
     }
 
-    public static function generateShortUrl($em): string
+    public static function generateShortUrl(EMInterface $em): string
     {
         do {
             $shortUrl = Link::generateRandomString(self::SHORT_URL_LEN);
@@ -149,45 +164,45 @@ class Link
         $em->flush();
     }
 
-    public static function getLinkById(int $id, EMInterface $em): ?Link
-    {
-        $link = $em->getRepository(Link::class)->find($id);
+    /* public static function getLinkById(int $id, EMInterface $em): ?Link */
+    /* { */
+    /* $link = $em->getRepository(Link::class)->find($id); */
+    /**/
+    /* if (!$link) { */
+    /* return null; */
+    /* } */
+    /**/
+    /* return $link; */
+    /* } */
+    /**/
+    /* public static function getLinkByUrl(string $shortUrl, EMInterface $em): ?Link */
+    /* { */
+    /* $link = $em->getRepository(Link::class)->findOneBy(['shortUrl' => $shortUrl]); */
+    /**/
+    /* if (!$link) { */
+    /* return null; */
+    /* } */
+    /**/
+    /* return $link; */
+    /* } */
+    /**/
+    /* public static function getAllLinks(EMInterface $em): array */
+    /* { */
+    /* return $em->getRepository(Link::class)->findAll(); */
+    /* } */
 
-        if (!$link) {
-            return null;
-        }
-
-        return $link;
-    }
-
-    public static function getLinkByUrl(string $shortUrl, EMInterface $em): ?Link
-    {
-        $link = $em->getRepository(Link::class)->findOneBy(['shortUrl' => $shortUrl]);
-
-        if (!$link) {
-            return null;
-        }
-
-        return $link;
-    }
-
-    public static function getAllLinks(EMInterface $em): array
-    {
-        return $em->getRepository(Link::class)->findAll();
-    }
-
-    public static function deleteLink(int $id, EMInterface $em): bool
-    {
-        $link = $em->getRepository(Link::class)->find($id);
-
-        if (!$link) {
-            return false;
-        }
-
-        $em->remove($link);
-        $em->flush();
-        return true;
-    }
+    /* public static function deleteLink(int $id, EMInterface $em): bool */
+    /* { */
+    /* $link = $em->getRepository(Link::class)->find($id); */
+    /**/
+    /* if (!$link) { */
+    /* return false; */
+    /* } */
+    /**/
+    /* $em->remove($link); */
+    /* $em->flush(); */
+    /* return true; */
+    /* } */
 
     public static function updateTimeAndUsageById(int $id, EMInterface $em): ?Link
     {
@@ -266,6 +281,12 @@ class Link
 
     public function lastUseTimeToString(): string
     {
-        return $this->lastUseTime->format('Y-m-d H:i:s');
+        $time = $this->lastUseTime;
+        return is_null($time) ? '' : $time->format('Y-m-d H:i:s');
+    }
+
+    public function getShortUrlInProperForm(): string
+    {
+        return "http://localhost:8000/short/$this->shortUrl";
     }
 }

@@ -2,18 +2,13 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
+        <title>{% block title %}Create Link{% endblock %}</title>
     </head>
     <body>
-        <form id="short" action="/" method="get" class="form-example">
-            <div class="form">
-                <label for="url">Enter url you want to shorten:</label>
-                <input type="text" name="url" id="url" required />
-            </div>
-            <div class="form">
-                <input type="submit" value="Get short url" />
-            </div>
-        </form>
-        <script></script>
+        {{ include("_header.html.twig") }}
+        <label for="url">Enter url you want to shorten:</label>
+        <input type="text" name="url" id="url" />
+        <button id="shortenButton" onclick="onClick()">Shorten</button>
+        <script src="{{ asset('js/root.js') }}"></script>
     </body>
 </html>

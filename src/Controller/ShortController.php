@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\Link;
-use Doctrine\ORM\EntityManagerInterface as EMInterface;
+use App\Repository\LinkRepository;
+use App\Service\LinkService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -11,10 +11,15 @@ use Symfony\Component\Routing\Attribute\Route;
 class ShortController extends AbstractController
 {
     #[Route('/short/{shortUrl}', name: 'short_url_redirect')]
-    public function shortRoute(string $shortUrl, EMInterface $em): Response
+    public function shortRoute(string $shortUrl, LinkService $service, LinkRepository $rep): Response
     {
-        $link = Link::getLinkByUrl($shortUrl, $em);
-        $link->updateTimeAndUsage($link, $em);
+        $link = $rep->getLinkByUrl($shortUrl);
+
+        if (is_null($link)) {
+            return $this->json(['status' => 'Error!']);
+        }
+
+        $service->updateTimeAndUsage($link, $rep);
         return $this->redirect($link->getLongUrl());
     }
 }
