@@ -1,6 +1,7 @@
 <?php
 namespace App\Entity;
 
+use App\Enum\LinkExpiration;
 use Doctrine\ORM\Mapping as ORM;
 use DateTime;
 
@@ -24,6 +25,16 @@ class Link
 
     #[ORM\Column]
     private int $useCount = 0;
+
+    #[ORM\ManyToOne(inversedBy: 'links')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $owner = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTime $expiryDate = null;
+
+    #[ORM\Column(enumType: LinkExpiration::class)]
+    private ?LinkExpiration $expirationType = null;
 
     public function getId(): int
     {
@@ -114,5 +125,41 @@ class Link
     public function getShortUrlInProperForm(): string
     {
         return "http://localhost:8000/short/$this->shortUrl";
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
+
+        return $this;
+    }
+
+    public function getExpiryDate(): ?\DateTime
+    {
+        return $this->expiryDate;
+    }
+
+    public function setExpiryDate(?\DateTime $expiryDate): static
+    {
+        $this->expiryDate = $expiryDate;
+
+        return $this;
+    }
+
+    public function getExpirationType(): ?LinkExpiration
+    {
+        return $this->expirationType;
+    }
+
+    public function setExpirationType(LinkExpiration $expirationType): static
+    {
+        $this->expirationType = $expirationType;
+
+        return $this;
     }
 }

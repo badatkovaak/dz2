@@ -11,6 +11,6 @@ class RootPageController extends AbstractController
     #[Route('/', name: 'root')]
     public function root(): Response
     {
-        return $this->render('root.html.twig');
+        return $this->render('root/index.html.twig');
     }
 }

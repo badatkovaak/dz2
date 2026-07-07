@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Pages;
 
 use App\Repository\LinkRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -9,9 +9,9 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class ListPageController extends AbstractController
 {
-    #[Route('/list', name: 'link_list')]
+    #[Route('/pages/list', name: 'link_list')]
     public function listRoute(LinkRepository $rep): Response
     {
-        return $this->render('list.html.twig', ['links' => $rep->getAllLinks()]);
+        return $this->render('list/index.html.twig', ['links' => $rep->getAllLinks()]);
     }
 }
