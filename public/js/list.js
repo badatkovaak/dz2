@@ -18,7 +18,9 @@ async function makeRequest(url, method, body) {
 function onClick(id) {
     return () => {
         const baseUrl = "http://localhost:8000";
-        const _ = makeRequest(baseUrl + "/link/" + id, "DELETE");
-        window.location.reload();
+        makeRequest(baseUrl + "/link/" + id, "DELETE").then((data) => {
+            console.log(data);
+        });
+        // window.location.reload();
     };
 }

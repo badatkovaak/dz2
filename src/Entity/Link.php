@@ -1,8 +1,9 @@
 <?php
 namespace App\Entity;
 
-use App\Enum\LinkExpiration;
+use App\Enum\LinkExpirationType as LEType;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use DateTime;
 
 #[ORM\Entity]
@@ -14,12 +15,16 @@ class Link
     #[ORM\Column(length: 255)]
     private string $shortUrl;
 
+    #[Assert\Url]
+    #[Assert\NotBlank]
     #[ORM\Column(length: 255)]
     private string $longUrl;
 
+    /* #[Assert\DateTime] */
     #[ORM\Column]
     private ?\DateTime $creationTime = null;
 
+    /* #[Assert\DateTime] */
     #[ORM\Column(nullable: true)]
     private ?\DateTime $lastUseTime = null;
 
@@ -30,11 +35,12 @@ class Link
     #[ORM\JoinColumn(nullable: false)]
     private ?User $owner = null;
 
+    #[Assert\DateTime]
     #[ORM\Column(nullable: true)]
     private ?\DateTime $expiryDate = null;
 
-    #[ORM\Column(enumType: LinkExpiration::class)]
-    private ?LinkExpiration $expirationType = null;
+    #[ORM\Column(enumType: LEType::class)]
+    private ?LEType $expirationType = null;
 
     public function getId(): int
     {
@@ -151,15 +157,25 @@ class Link
         return $this;
     }
 
-    public function getExpirationType(): ?LinkExpiration
+    public function expiryDateToString(): string
+    {
+        return is_null($this->expiryDate) ? '' : $this->expiryDate->format('Y-m-d H:i:s');
+    }
+
+    public function getExpirationType(): ?LEType
     {
         return $this->expirationType;
     }
 
-    public function setExpirationType(LinkExpiration $expirationType): static
+    public function setExpirationType(LEType $expirationType): static
     {
         $this->expirationType = $expirationType;
 
         return $this;
+    }
+
+    public function expirationTypeToString(): string
+    {
+        return $this->expirationType->ToString();
     }
 }

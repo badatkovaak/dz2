@@ -1,0 +1,10 @@
+{% extends('base.html.twig') %}
+{% block body %}
+    {{ form_start(form) }}
+        {{ form_row(form.longUrl) }}
+        {{ form_row(form.expirationType) }}
+        {{ form_row(form.expiryDate) }}
+        <button type="submit">Shorten</button>
+        {{ form_rest(form) }}
+    {{ form_end(form) }}
+{% endblock %}

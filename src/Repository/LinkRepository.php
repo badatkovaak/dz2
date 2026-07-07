@@ -3,11 +3,15 @@
 namespace App\Repository;
 
 use App\Entity\Link;
+use App\Entity\User;
+use App\Enum\LinkExpirationType as LEType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use DateTime;
 
 /**
- * @extends ServiceEntityRepository<User>
+ * @extends ServiceEntityRepository<Link>
  */
 class LinkRepository extends ServiceEntityRepository
 {
@@ -30,7 +34,7 @@ class LinkRepository extends ServiceEntityRepository
 
     public function getLinkById(int $id): ?Link
     {
-        return $this->findBy($id);
+        return $this->find($id);
     }
 
     public function save(Link $link): Link
@@ -43,12 +47,25 @@ class LinkRepository extends ServiceEntityRepository
 
     public function deleteLink(Link $link): void
     {
+        $link->getOwner()->removeLink($link);
         $em = $this->getEntityManager();
         $em->remove($link);
         $em->flush();
     }
 
-    public function create(string $longUrl): ?Link
+    public function deleteLinkById(int $id): bool
+    {
+        $link = $this->find($id);
+
+        if (is_null($link)) {
+            return false;
+        }
+
+        $this->deleteLink($link);
+        return true;
+    }
+
+    public function create(string $longUrl, User $user, LEType $type, ValidatorInterface $val, ?DateTime $date = null): ?Link
     {
         $link = new Link();
 
@@ -59,10 +76,24 @@ class LinkRepository extends ServiceEntityRepository
         $link->setLongUrl($longUrl);
         $link->setShortUrl($this->generateShortUrl());
         $link->setCreationTime(date_create());
+        $link->setOwner($user);
+        $user->addLink($link);
+        $link->setExpirationType($type);
+
+        if ($type === LEType::ExpireByDate) {
+            if (is_null($date)) {
+                return null;
+            }
+
+            $link->setExpiryDate($date);
+        }
+
+        $val->validate($link);
+
         return $link;
     }
 
-    public function fromJson(string $input): ?Link
+    public function fromJson(string $input, User $user, ValidatorInterface $val): ?Link
     {
         if (!json_validate($input)) {
             return null;
@@ -75,7 +106,31 @@ class LinkRepository extends ServiceEntityRepository
             return null;
         }
 
-        return $this->create($longUrl);
+        $expirationTypeStr = array_key_exists('type', $obj) ? $obj['type'] : null;
+
+        if (is_null($expirationTypeStr)) {
+            return null;
+        }
+
+        $type = LEType::fromString($expirationTypeStr);
+
+        $date = null;
+
+        if ($type === LEType::ExpireByDate) {
+            $dateString = array_key_exists('date', $obj) ? $obj['date'] : null;
+
+            if (is_null($dateString)) {
+                return null;
+            }
+
+            $date = date_create_from_format('Y-m-d\TH:i', $dateString);
+
+            if (!$date) {
+                return null;
+            }
+        }
+
+        return $this->create($longUrl, $user, $type, $date, $val);
     }
 
     public function updateTimeAndUsage(Link $link): void
@@ -145,5 +200,15 @@ class LinkRepository extends ServiceEntityRepository
     {
         $links = $this->findBy(['shortUrl' => $shortUrl]);
         return count($links) === 0;
+    }
+
+    public function finishCreation(Link $link, User $user, ValidatorInterface $val): void
+    {
+        $link->setShortUrl($this->generateShortUrl());
+        $link->setCreationTime(date_create());
+        $link->setOwner($user);
+
+        $val->validate($link);
+        $user->addLink($link);
     }
 }

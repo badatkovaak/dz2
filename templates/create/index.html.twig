@@ -1,14 +1,39 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Create Link{% endblock %}</title>
-    </head>
-    <body>
-        {{ include("_header.html.twig") }}
-        <label for="url">Enter url you want to shorten:</label>
-        <input type="text" name="url" id="url" />
-        <button id="shortenButton" onclick="onClick()">Shorten</button>
-        <script src="{{ asset('js/create.js') }}"></script>
-    </body>
-</html>
+{% extends("base.html.twig") %}
+{% block title %}Create Link{% endblock %}
+{% block body %}
+    <form id="shorten-form">
+        <fieldset>
+            <legend>Input link you want to shorten:</legend>
+            <div>
+                <label for="url">Enter url you want to shorten:</label>
+                <input type="text" name="url" id="url" />
+            </div>
+            <!-- <br /> -->
+            <label>Choose if and how you want your link to expire:</label>
+            <div>
+                <label for="type-permanent">Permanent Link</label>
+                <input type="radio"
+                       name="type"
+                       id="type-permanent"
+                       value="permanent"
+                       checked />
+            </div>
+            <div>
+                <label for="type-onetime">One Time Link</label>
+                <input type="radio" name="type" id="type-onetime" value="onetime" />
+            </div>
+            <div>
+                <label for="type-expirebydate">Link that expires by chosen date</label>
+                <input type="radio" name="type" id="type-expirebydate" value="expirebydate" />
+            </div>
+            <div>
+                <label>Link expiry date</label>
+                <input type="datetime-local" name="date" id="expirydate" />
+            </div>
+            <div>
+                <button id="shortenButton" type="submit">Shorten</button>
+            </div>
+        </fieldset>
+    </form>
+    <script src="{{ asset('js/create.js') }}"></script>
+{% endblock %}

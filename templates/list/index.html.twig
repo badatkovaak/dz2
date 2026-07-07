@@ -1,42 +1,41 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Short Links{% endblock %}</title>
-        <link rel="stylesheet" href="{{ asset("css/list.css") }}">
-    </head>
-    <body>
-        {{ include("_header.html.twig") }}
-        <table>
-            <thead>
+{% extends("base.html.twig") %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset("css/list.css") }}">
+{% endblock %}
+{% block body %}
+    <table>
+        <thead>
+            <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Short Link</th>
+                <th scope="col">Long Link</th>
+                <th scope="col">Link Creation Time</th>
+                <th scope="col">Link Last Usage Time</th>
+                <th scope="col">Link Use Count</th>
+                <th scope="col">Link Expiry Type</th>
+                <th scope="col">Link Expiry Date</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for link in links %}
                 <tr>
-                    <th scope="col">Id</th>
-                    <th scope="col">Short Link</th>
-                    <th scope="col">Long Link</th>
-                    <th scope="col">Link Creation Time</th>
-                    <th scope="col">Link Last Usage Time</th>
-                    <th scope="col">Link Use Count</th>
-                    <th scope="col"></th>
+                    <td scope="row">{{ link.id }}</td>
+                    <td scope="row">
+                        <a href="{{ link.getShortUrlInProperForm }}">{{ link.getShortUrlInProperForm }}</a>
+                    </td>
+                    <td scope="row">{{ link.longUrl }}</td>
+                    <td scope="row">{{ link.creationTimeToString }}</td>
+                    <td scope="row">{{ link.lastUseTimeToString }}</td>
+                    <td scope="row">{{ link.useCount }}</td>
+                    <td scope="row">{{ link.expirationTypeToString }}</td>
+                    <td scope="row">{{ link.expiryDateToString }}</td>
+                    <td scope="row">
+                        <button onclick="onClick({{ link.id }})()">Delete</button>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                {% for link in links %}
-                    <tr>
-                        <td scope="row">{{ link.id }}</td>
-                        <td scope="row">
-                            <a href="{{ link.getShortUrlInProperForm }}">{{ link.getShortUrlInProperForm }}</a>
-                        </td>
-                        <td scope="row">{{ link.longUrl }}</td>
-                        <td scope="row">{{ link.creationTimeToString }}</td>
-                        <td scope="row">{{ link.lastUseTimeToString }}</td>
-                        <td scope="row">{{ link.useCount }}</td>
-                        <td scope="row">
-                            <button onclick="onClick({{ link.id }})()">Delete</button>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <script src="{{ asset('js/list.js') }}"></script>
-    </body>
-</html>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script src="{{ asset('js/list.js') }}"></script>
+{% endblock %}

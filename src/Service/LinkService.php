@@ -2,46 +2,87 @@
 
 namespace App\Service;
 
-/* use App\Entity\Link; */
-/* use App\Repository\LinkRepository; */
+use App\Entity\User;
+use App\Enum\LinkExpirationType as LEType;
+use App\Repository\LinkRepository;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Exception;
 
 class LinkService
 {
-    /* public function updateTimeAndUsage(Link $link, LinkRepository $rep): void */
-    /* { */
-    /* $link->incrementUseCount(); */
-    /* $link->updateLastUseTime(); */
-    /* $rep->save($link); */
-    /* } */
-    /**/
-    /* public function updateFromJson(Link $link, string $content, LinkRepository $rep): bool */
-    /* { */
-    /* if (!json_validate($content)) { */
-    /* return false; */
-    /* } */
-    /**/
-    /* $obj = json_decode($content, true); */
-    /* $newLongUrl = array_key_exists('longUrl', $obj) ? $obj['longUrl'] : null; */
-    /* $newShortUrl = array_key_exists('shortUrl', $obj) ? $obj['shortUrl'] : null; */
-    /**/
-    /* if (is_null($newShortUrl) && is_null($newLongUrl)) { */
-    /* return true; */
-    /* } */
-    /**/
-    /* if (!is_null($newLongUrl)) { */
-    /* $link->setLongUrl($newLongUrl); */
-    /* } */
-    /**/
-    /* if (!is_null($newShortUrl)) { */
-    /* if (!$rep->shortUrlIsUnique($newShortUrl)) { */
-    /* return false; */
-    /* } */
-    /**/
-    /* $link->setShortUrl($newShortUrl); */
-    /* } */
-    /**/
-    /* $rep->save($link); */
-    /**/
-    /* return true; */
-    /* } */
+    public static function createLinkHandler(Request $request, Security $security, LinkRepository $rep, ValidatorInterface $val): bool
+    {
+        $user = $security->getUser();
+
+        if (is_null($user)) {
+            /* return $this->json(['status' => 'Error! You need to be authenticated to create links.'], 404); */
+            return false;
+        }
+
+        $content = $request->getContent();
+
+        if (!json_validate($content)) {
+            /* return $this->json(['status' => 'Error! Not a valid JSON.'], 400); */
+            return false;
+        }
+
+        $link = $rep->fromJson($content, $user, $val);
+
+        if (is_null($link)) {
+            /* return $this->json(['status' => 'Error! Error during decoding.'], 400); */
+            return false;
+        }
+
+        $rep->save($link);
+        return true;
+    }
+
+    public static function shortLinkHandler(User $user, string $shortUrl, LinkRepository $rep): ?string
+    {
+        $link = $rep->getLinkByUrl($shortUrl);
+
+        if (is_null($link)) {
+            return null;
+        }
+
+        if ($link->getOwner() !== $user) {
+            return null;
+        }
+
+        $linkType = $link->getExpirationType();
+
+        if (is_null($linkType)) {
+            throw new Exception('Shouldnt happen');
+        }
+
+        if ($linkType === LEType::OneTime) {
+            if ($link->getUseCount() > 0) {
+                throw new Exception('Shouldnt happen');
+            }
+
+            $url = $link->getLongUrl();
+            $rep->deleteLink($link);
+            return $url;
+        }
+
+        if ($linkType === LEType::ExpireByDate) {
+            if (is_null($link->getExpiryDate())) {
+                throw new Exception('Shouldn happen');
+            }
+
+            $expiryDate = $link->getExpiryDate();
+            $currentDate = date_create();
+
+            if ($currentDate > $expiryDate) {
+                $rep->deleteLink($link);
+                return null;
+            }
+        }
+
+        $rep->updateTimeAndUsage($link);
+
+        return $link->getLongUrl();
+    }
 }

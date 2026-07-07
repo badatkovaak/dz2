@@ -1,0 +1,13 @@
+{% extends "base.html.twig" %}
+{% block body %}
+    {{ user.username }}
+    <br />
+    {% for role in user.roles %}
+        {{ role }}
+        <br />
+    {% endfor %}
+    {% for link in user.links %}
+        {{ link.longUrl }}, {{ link.shortUrl }}
+        <br />
+    {% endfor %}
+{% endblock %}

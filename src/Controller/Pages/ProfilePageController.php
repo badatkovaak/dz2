@@ -8,11 +8,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
-class ListPageController extends AbstractController
+class ProfilePageController extends AbstractController
 {
-    #[Route('/pages/list', name: 'link_list_page')]
-    public function listRoute(#[CurrentUser] User $user): Response
+    #[Route('/pages/profile', name: 'profile_page')]
+    public function profilePageRoute(#[CurrentUser] User $user): Response
     {
-        return $this->render('list/index.html.twig', ['links' => $user->getLinks()]);
+        return $this->render('profile/index.html.twig', ['user' => $user]);
     }
 }

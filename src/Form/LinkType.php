@@ -3,7 +3,10 @@
 namespace App\Form;
 
 use App\Entity\Link;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
+use App\Enum\LinkExpirationType as LEType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -14,27 +17,23 @@ class LinkType extends AbstractType
     {
         $builder
             /* ->add('shortUrl') */
-            ->add('longUrl', TextType::class, [
-                'label' => 'Url you want to shorten',
-                'attr' => ['class' => 'form-control'],
-            ])
+            ->add('longUrl', UrlType::class)
             /* ->add('creationTime') */
             /* ->add('lastUseTime') */
             /* ->add('useCount') */
-            ->add(
-                'isOneTime',
-            )
-            ->add('expiryDate');
+            ->add('expiryDate', DateTimeType::class, ['required' => false])
+            ->add('expirationType', EnumType::class, ['class' => LEType::class]);
         /* ->add('owner', EntityType::class, [ */
         /* 'class' => User::class, */
         /* 'choice_label' => 'id', */
-        /* ]); */
+        /* ]) */
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Link::class,
+            'csrf_protection' => false,
         ]);
     }
 }
