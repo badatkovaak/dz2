@@ -12,7 +12,12 @@ use Exception;
 
 class LinkService
 {
-    public static function createLinkHandler(Request $request, Security $security, LinkRepository $rep, ValidatorInterface $val): bool
+    public function __construct(
+        private ValidatorInterface $val,
+        private LinkRepository $rep,
+    ) {}
+
+    public static function createLinkHandler(Request $request, Security $security): bool
     {
         $user = $security->getUser();
 
@@ -28,20 +33,20 @@ class LinkService
             return false;
         }
 
-        $link = $rep->fromJson($content, $user, $val);
+        $link = $this->rep->fromJson($content, $user, $this->val);
 
         if (is_null($link)) {
             /* return $this->json(['status' => 'Error! Error during decoding.'], 400); */
             return false;
         }
 
-        $rep->save($link);
+        $this->rep->save($link);
         return true;
     }
 
-    public static function shortLinkHandler(User $user, string $shortUrl, LinkRepository $rep): ?string
+    public function shortLinkHandler(User $user, string $shortUrl): ?string
     {
-        $link = $rep->getLinkByUrl($shortUrl);
+        $link = $this->rep->getLinkByUrl($shortUrl);
 
         if (is_null($link)) {
             return null;
@@ -63,7 +68,7 @@ class LinkService
             }
 
             $url = $link->getLongUrl();
-            $rep->deleteLink($link);
+            $this->rep->deleteLink($link);
             return $url;
         }
 
@@ -76,12 +81,12 @@ class LinkService
             $currentDate = date_create();
 
             if ($currentDate > $expiryDate) {
-                $rep->deleteLink($link);
+                $this->rep->deleteLink($link);
                 return null;
             }
         }
 
-        $rep->updateTimeAndUsage($link);
+        $this->rep->updateTimeAndUsage($link);
 
         return $link->getLongUrl();
     }

@@ -16,17 +16,9 @@ class LinkType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            /* ->add('shortUrl') */
             ->add('longUrl', UrlType::class)
-            /* ->add('creationTime') */
-            /* ->add('lastUseTime') */
-            /* ->add('useCount') */
-            ->add('expiryDate', DateTimeType::class, ['required' => false])
+            ->add('expiryDate', DateTimeType::class, ['required' => false, 'input_format' => 'Y-m-d\TH:i:s'])
             ->add('expirationType', EnumType::class, ['class' => LEType::class]);
-        /* ->add('owner', EntityType::class, [ */
-        /* 'class' => User::class, */
-        /* 'choice_label' => 'id', */
-        /* ]) */
     }
 
     public function configureOptions(OptionsResolver $resolver): void

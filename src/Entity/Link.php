@@ -20,11 +20,9 @@ class Link
     #[ORM\Column(length: 255)]
     private string $longUrl;
 
-    /* #[Assert\DateTime] */
     #[ORM\Column]
     private ?\DateTime $creationTime = null;
 
-    /* #[Assert\DateTime] */
     #[ORM\Column(nullable: true)]
     private ?\DateTime $lastUseTime = null;
 
@@ -35,7 +33,7 @@ class Link
     #[ORM\JoinColumn(nullable: false)]
     private ?User $owner = null;
 
-    #[Assert\DateTime]
+    #[Assert\Type(DateTime::class)]
     #[ORM\Column(nullable: true)]
     private ?\DateTime $expiryDate = null;
 

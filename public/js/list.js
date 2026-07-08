@@ -21,6 +21,6 @@ function onClick(id) {
         makeRequest(baseUrl + "/link/" + id, "DELETE").then((data) => {
             console.log(data);
         });
-        // window.location.reload();
+        window.location.reload();
     };
 }
